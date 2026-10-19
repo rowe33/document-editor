@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Редактор документов A4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{color-scheme:light;--ink:#1d1d1f;--mut:#6e6e73;--acc:#007aff;
+--glass:rgba(255,255,255,.58);--glass2:rgba(255,255,255,.82);--edge:rgba(255,255,255,.8);--hair:rgba(0,0,0,.09);
+--hov:rgba(0,0,0,.06);--sel:rgba(0,122,255,.14);--sh:0 8px 32px rgba(40,50,120,.12);--bgc:#eef1f7;
+--m1:rgba(120,170,255,.55);--m2:rgba(200,150,255,.42);--m3:rgba(255,190,150,.45);
+--mt:96px;--mr:96px;--mb:96px;--ml:96px;
+--f:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','Segoe UI',Roboto,system-ui,sans-serif}
+:root[data-theme="dark"]{color-scheme:dark;--ink:#f5f5f7;--mut:#a1a1a6;--glass:rgba(44,44,52,.55);--glass2:rgba(40,40,48,.86);
+--edge:rgba(255,255,255,.12);--hair:rgba(255,255,255,.1);--hov:rgba(255,255,255,.09);--sel:rgba(10,132,255,.3);
+--sh:0 8px 32px rgba(0,0,0,.45);--bgc:#0d0e14;--m1:rgba(70,110,220,.38);--m2:rgba(130,80,200,.3);--m3:rgba(200,110,70,.2)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{display:flex;flex-direction:column;font:14px/1.4 var(--f);color:var(--ink);overflow:hidden;
+background:radial-gradient(900px 520px at 8% -8%,var(--m1),transparent 62%),radial-gradient(780px 520px at 100% 4%,var(--m2),transparent 60%),radial-gradient(900px 600px at 55% 108%,var(--m3),transparent 60%),var(--bgc);background-attachment:fixed}
+#toolbar,#side,.card,#imgbar{background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);border:1px solid var(--edge);box-shadow:var(--sh)}
+.card,#imgbar{background:var(--glass2)}
+header{display:flex;align-items:center;gap:10px;padding:10px 16px 8px}
+.logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(145deg,#5ac8fa,#007aff);position:relative;flex:none}
+.logo::before{content:"";position:absolute;left:7px;right:7px;top:8px;height:2px;border-radius:1px;background:#fff;box-shadow:0 5px #fff,0 10px #fff}
+#title{font:600 17px var(--f);border:1px solid transparent;border-radius:8px;padding:3px 8px;background:none;width:300px;max-width:40vw;color:var(--ink)}
+#title:hover{border-color:var(--hair)}#title:focus{outline:2px solid var(--acc);background:var(--glass2)}
+#st{font-size:12px;color:var(--mut)}
+.btn{border:1px solid var(--hair);background:var(--glass);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-radius:999px;padding:6px 14px;font:inherit;color:var(--ink);cursor:pointer}
+.btn:hover{background:var(--glass2)}
+header .btn:nth-of-type(1){margin-left:auto}
+#app{flex:1;display:flex;gap:12px;padding:0 12px;min-height:0}
+#col{flex:1;display:flex;flex-direction:column;min-width:0}
+#side{width:272px;flex:none;margin-bottom:12px;border-radius:20px;display:flex;flex-direction:column;gap:8px;padding:12px;overflow:hidden}
+body.noside #side{display:none}
+.sh{display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:15px;padding:0 4px}
+#q{height:32px;border:1px solid var(--hair);border-radius:10px;background:var(--hov);padding:0 12px;font:inherit;color:var(--ink)}
+#q:focus{outline:2px solid var(--acc)}
+#dl{flex:1;overflow:auto;display:flex;flex-direction:column;gap:4px;margin:0 -4px;padding:0 4px;scrollbar-width:thin}
+.di{position:relative;padding:9px 12px;border-radius:12px;cursor:pointer;border:1px solid transparent}
+.di:hover{background:var(--hov)}.di.on{background:var(--sel);border-color:rgba(0,122,255,.28)}
+.dt{font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:22px}
+.dm{display:flex;justify-content:space-between;font-size:11.5px;color:var(--mut);margin-top:1px}
+.ds{font-size:12px;color:var(--mut);margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal}
+.dx{position:absolute;top:7px;right:7px;width:22px;height:22px;border:0;border-radius:50%;background:none;color:var(--mut);cursor:pointer;opacity:0;font-size:11px}
+.di:hover .dx{opacity:1}.dx:hover{background:rgba(255,59,48,.16);color:#ff3b30}
+@media(hover:none){.dx{opacity:.7}}
+.empty{color:var(--mut);font-size:13px;text-align:center;margin:16px 0}
+#toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin:0 0 10px;padding:4px 10px;border-radius:20px}
+.b{position:relative;min-width:30px;height:30px;padding:0 6px;border:0;background:none;border-radius:8px;cursor:pointer;font:inherit;color:inherit;display:inline-flex;align-items:center;justify-content:center;gap:2px}
+.b:hover{background:var(--hov)}
+.b.on{background:var(--sel);color:var(--acc)}
+.b input[type=color]{position:absolute;width:0;height:0;opacity:0;pointer-events:none}
+.ic{display:inline-block;font-weight:700;line-height:1.1;border-bottom:3px solid #000;padding:0 2px}
+.ic.hl{background:#ff0;color:#000;border-bottom:0;padding:0 4px;border-radius:2px}
+.sep{width:1px;height:18px;background:var(--hair);margin:0 6px}
+select,#fs{height:30px;border:1px solid transparent;border-radius:8px;background:transparent;font:inherit;color:inherit;cursor:pointer}
+select:hover{background:var(--hov)}
+#ff{width:140px}#fs{width:46px;text-align:center;border-color:var(--hair);background:var(--hov);-moz-appearance:textfield}
+#fs::-webkit-inner-spin-button{display:none}
+#pn{font-size:12px;color:var(--mut);margin:0 10px 0 auto}
+.pri{border:0;background:var(--acc);color:#fff;border-radius:999px;padding:6px 16px;font:inherit;font-weight:600;cursor:pointer;box-shadow:0 1px 3px rgba(0,122,255,.45)}
+.pri:hover{filter:brightness(1.1)}.pri:disabled{opacity:.6;cursor:wait}
+#ws{flex:1;overflow:auto;position:relative;padding:4px 0 40px;scrollbar-width:thin}
+#pages{width:794px;margin:0 auto;counter-reset:pg}
+.pg{position:relative;width:794px;height:1123px;margin:0 auto 44px;background:#fff;counter-increment:pg;box-shadow:0 2px 6px rgba(0,0,0,.12),0 12px 36px rgba(30,40,90,.18)}
+.pg::after{content:"Страница " counter(pg);position:absolute;left:0;right:0;bottom:-26px;text-align:center;font-size:12px;color:var(--mut)}
+.content{position:relative;width:794px;height:1123px;padding:var(--mt) var(--mr) var(--mb) var(--ml);overflow:hidden;outline:none;background:#fff;color:#000;
+  font-family:Arial,sans-serif;font-size:12pt;line-height:1.15;white-space:pre-wrap;word-wrap:break-word}
+.content>*{margin:0}
+.content p,.content div{min-height:1em}
+.content hr{border:0;border-top:1.5px solid #000;margin:10px 0}
+.content img{max-width:100%;cursor:pointer}
+.content ul,.content ol{padding-left:32px;white-space:normal}
+.content [data-hd][style*="justify"]{text-align-last:justify}
+.content [data-cont]{text-indent:0!important}
+#hrs{width:92px}
+#xl{max-height:300px;overflow:auto;display:flex;flex-direction:column;gap:4px;scrollbar-width:thin}
+.xr{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;cursor:pointer;border:1px solid transparent}
+.xr:hover{background:var(--hov)}.xr:has(input:checked){background:var(--sel)}
+.xr input{width:16px;height:16px;accent-color:var(--acc)}
+.xr span{color:var(--mut);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xtools{display:flex;gap:6px;margin-bottom:10px}
+#imgbox{position:absolute;z-index:5;border:2px solid var(--acc);pointer-events:none}
+#imgbar{position:absolute;left:-2px;display:flex;gap:2px;padding:3px;border-radius:12px;pointer-events:auto}
+#imgbar .b{height:26px;min-width:26px;font-size:12px}
+#imgh{position:absolute;right:-8px;bottom:-8px;width:13px;height:13px;border-radius:50%;background:var(--acc);border:2px solid #fff;cursor:nwse-resize;pointer-events:auto}
+#ov{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:rgba(30,30,34,.78);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);color:#fff;padding:10px 20px;border-radius:999px;z-index:50;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+#modal,#xmodal{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.22);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:40}
+.card{width:460px;max-width:92vw;border-radius:22px;padding:22px}
+.card h2{margin:0;font-size:18px}.sub{color:var(--mut);margin:2px 0 14px;font-size:13px}
+.pre{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.mb{display:flex;gap:22px;align-items:center}
+.grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)}
+.grid input{height:34px;border:1px solid var(--hair);border-radius:9px;padding:0 10px;font:inherit;background:var(--hov);color:var(--ink)}
+.grid input:focus{outline:2px solid var(--acc)}
+.mp{position:relative;width:84px;height:119px;flex:none;background:#fff;border-radius:3px;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.mp i{position:absolute;border:1px dashed var(--acc);background:rgba(0,122,255,.06)}
+.act{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}
+@media(max-width:900px){#side{position:fixed;z-index:30;left:12px;top:56px;bottom:12px}}
+</style>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('a4d:theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}catch(e){}</script>
+</head>
+<body>
+<header>
+  <button class="b" id="menu" title="Список документов"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="14" height="12" rx="3"/><path d="M7 3v12"/></svg></button>
+  <div class="logo"></div>
+  <input id="title" placeholder="Документ без названия" spellcheck="false" title="Название документа (используется как имя файлов JPG)">
+  <span id="st"></span>
+  <button class="btn" data-cmd="pagesetup">Параметры страницы</button>
+  <button class="btn" data-cmd="new">Новый документ</button>
+  <button class="b" id="theme" title="Светлая / тёмная тема"></button>
+</header>
+<div id="app">
+<aside id="side">
+  <div class="sh"><span>Документы</span><button class="b" data-cmd="new" title="Новый документ">＋</button></div>
+  <input id="q" type="search" placeholder="Поиск по документам">
+  <div id="dl"></div>
+</aside>
+<div id="col">
+
+<div id="toolbar">
+  <button class="b" data-cmd="undo" title="Отменить (Ctrl+Z)">↶</button>
+  <button class="b" data-cmd="redo" title="Повторить (Ctrl+Y)">↷</button>
+  <i class="sep"></i>
+  <select id="ff" title="Шрифт">
+    <option style="font-family:Arial">Arial</option>
+    <option style="font-family:'Times New Roman'">Times New Roman</option>
+    <option style="font-family:Georgia">Georgia</option>
+    <option style="font-family:Verdana">Verdana</option>
+    <option style="font-family:'Courier New'">Courier New</option>
+    <option style="font-family:Montserrat">Montserrat</option>
+    <option style="font-family:Roboto">Roboto</option>
+    <option style="font-family:'PT Serif'">PT Serif</option>
+  </select>
+  <i class="sep"></i>
+  <button class="b" data-cmd="size-" title="Уменьшить размер">−</button>
+  <input id="fs" type="number" min="6" max="96" value="12" title="Размер шрифта (pt)">
+  <button class="b" data-cmd="size+" title="Увеличить размер">+</button>
+  <i class="sep"></i>
+  <button class="b" data-cmd="bold" title="Жирный (Ctrl+B)"><b>B</b></button>
+  <button class="b" data-cmd="italic" title="Курсив (Ctrl+I)"><i>I</i></button>
+  <button class="b" data-cmd="underline" title="Подчёркнутый (Ctrl+U)"><u>U</u></button>
+  <button class="b" data-cmd="strikeThrough" title="Зачёркнутый"><s>S</s></button>
+  <label class="b" title="Цвет текста"><span class="ic" id="tcI">A</span><input type="color" id="tc" value="#000000"></label>
+  <label class="b" title="Цвет фона (выделение)"><span class="ic hl" id="hcI">A</span><input type="color" id="hc" value="#ffff00"></label>
+  <button class="b" data-cmd="clearhl" title="Убрать цвет фона">✕</button>
+  <i class="sep"></i>
+  <button class="b" data-cmd="justifyLeft" title="По левому краю"><span data-ic="left"></span></button>
+  <button class="b" data-cmd="justifyCenter" title="По центру"><span data-ic="center"></span></button>
+  <button class="b" data-cmd="justifyRight" title="По правому краю"><span data-ic="right"></span></button>
+  <button class="b" data-cmd="justifyFull" title="По ширине"><span data-ic="full"></span></button>
+  <select id="lh" title="Межстрочный интервал">
+    <option value="1">↕ 1.0</option><option value="1.15" selected>↕ 1.15</option><option value="1.5">↕ 1.5</option><option value="2">↕ 2.0</option>
+  </select>
+  <button class="b" data-cmd="insertUnorderedList" title="Маркированный список">•≡</button>
+  <button class="b" data-cmd="insertOrderedList" title="Нумерованный список">1.≡</button>
+  <button class="b" data-cmd="indent-" title="Уменьшить отступ абзаца (Shift+Tab)">⇤</button>
+  <button class="b" data-cmd="indent+" title="Увеличить отступ абзаца (Tab)">⇥</button>
+  <i class="sep"></i>
+  <button class="b" data-cmd="img-file" title="Вставить изображение с компьютера">🖼</button>
+  <button class="b" data-cmd="img-url" title="Вставить изображение по URL">🔗</button>
+  <select id="hrs" title="Разделительная линия"><option value="" selected hidden>― Линия</option><option value="thin">Тонкая</option><option value="normal">Обычная</option><option value="thick">Толстая</option><option value="double">Двойная</option><option value="dashed">Пунктирная</option><option value="dotted">Точечная</option></select>
+  <button class="b" data-cmd="pagebreak" title="Разрыв страницы (Ctrl+Enter)">⤵ Разрыв</button>
+  <span id="pn">Стр. 1 / 1</span>
+  <button class="pri" id="exp" data-cmd="export">⬇ Скачать страницы как JPG</button>
+</div>
+<input type="file" id="fi" accept="image/*" multiple hidden>
+
+<div id="ws">
+  <div id="pages"></div>
+  <div id="imgbox" hidden>
+    <div id="imgbar">
+      <button class="b" data-img="left" title="Влево"><span data-ic="left"></span></button>
+      <button class="b" data-img="center" title="По центру"><span data-ic="center"></span></button>
+      <button class="b" data-img="right" title="Вправо"><span data-ic="right"></span></button>
+      <button class="b" data-img="25">25%</button>
+      <button class="b" data-img="50">50%</button>
+      <button class="b" data-img="100">100%</button>
+      <button class="b" data-img="del" title="Удалить">🗑</button>
+    </div>
+    <i id="imgh" title="Потяните, чтобы изменить размер"></i>
+  </div>
+</div>
+</div></div>
+<div id="ov" hidden></div>
+<div id="modal" hidden><div class="card">
+  <h2>Параметры страницы</h2>
+  <p class="sub">Формат A4. Поля задаются в миллиметрах.</p>
+  <div class="pre">
+    <button class="btn" data-pre="25.4,25.4,25.4,25.4">Обычные</button>
+    <button class="btn" data-pre="12.7,12.7,12.7,12.7">Узкие</button>
+    <button class="btn" data-pre="25.4,25.4,19.1,19.1">Умеренные</button>
+    <button class="btn" data-pre="25.4,25.4,50.8,50.8">Широкие</button>
+  </div>
+  <div class="mb">
+    <div class="grid">
+      <label>Сверху<input type="number" id="mt" min="0" max="80" step="0.1"></label>
+      <label>Снизу<input type="number" id="mb" min="0" max="80" step="0.1"></label>
+      <label>Слева<input type="number" id="ml" min="0" max="80" step="0.1"></label>
+      <label>Справа<input type="number" id="mr" min="0" max="80" step="0.1"></label>
+    </div>
+    <div class="mp" id="mp"><i></i></div>
+  </div>
+  <div class="act"><button class="btn" id="mcancel">Отмена</button><button class="pri" id="mok">Применить</button></div>
+</div></div>
+<div id="xmodal" hidden><div class="card">
+  <h2>Скачать страницы как JPG</h2>
+  <p class="sub" id="xsub"></p>
+  <div class="xtools"><button class="btn" id="xall">Выбрать все</button><button class="btn" id="xnone">Снять выбор</button></div>
+  <div id="xl"></div>
+  <div class="act"><button class="btn" id="xcancel">Отмена</button><button class="pri" id="xgo">Скачать</button></div>
+</div></div>
+
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s), pagesEl=$('#pages'), ws=$('#ws'), box=$('#imgbox');
+const PW=794, PH=1123, DEF=96, KEY='a4doc-v1', EMPTY='<p><br></p>', BLK=/^(P|DIV|H[1-6])$/;
+let LIM=PH-DEF; const M={t:DEF,r:DEF,b:DEF,l:DEF};
+let lastRange=null, selImg=null, marker=null, tmr;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const contents=()=>[...pagesEl.querySelectorAll('.content')];
+const nextC=c=>{const n=c.parentNode.nextElementSibling;return n&&n.firstChild};
+const isEmpty=el=>el.textContent.replace(/\u200b/g,'')===''&&!el.querySelector('img,hr');
+
+/* ---------- иконки выравнивания ---------- */
+const ICONS={left:'M2 4h14M2 8h9M2 12h14M2 16h9',center:'M2 4h14M5 8h8M2 12h14M5 16h8',right:'M2 4h14M7 8h9M2 12h14M7 16h9',full:'M2 4h14M2 8h14M2 12h14M2 16h14'};
+document.querySelectorAll('[data-ic]').forEach(e=>e.innerHTML=`<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="${ICONS[e.dataset.ic]}"/></svg>`);
+
+/* ---------- страницы ---------- */
+function newPage(html=EMPTY){
+  const pg=document.createElement('div'); pg.className='pg';
+  const c=document.createElement('div'); c.className='content'; c.contentEditable='true'; c.innerHTML=html;
+  pg.appendChild(c); return pg;
+}
+const bottomOf=c=>{const l=c.lastElementChild; return l?l.offsetTop+l.offsetHeight+(parseFloat(getComputedStyle(l).marginBottom)||0):0};
+const blockH=e=>{const s=getComputedStyle(e);return e.offsetHeight+(parseFloat(s.marginTop)||0)+(parseFloat(s.marginBottom)||0)};
+const lineH=e=>parseFloat(getComputedStyle(e).lineHeight)||20;
+
+function fixBlocks(c,first){
+  [...c.childNodes].forEach(n=>{
+    if(n.nodeType===3&&!n.textContent.trim()){n.remove();return}
+    if(n.nodeType===3||/^(SPAN|B|I|U|S|STRIKE|FONT|STRONG|EM|A|IMG|BR)$/.test(n.nodeName)){const p=document.createElement('p');n.replaceWith(p);p.appendChild(n)}
+  });
+  if(!c.firstElementChild&&first) c.innerHTML=EMPTY;
+}
+
+/* ---------- маркер каретки (сохраняет курсор при переносах между листами) ---------- */
+function mark(){
+  if(marker) return;
+  const s=getSelection();
+  if(!s.rangeCount||!contents().some(c=>c.contains(s.anchorNode))) return;
+  const r=s.getRangeAt(0).cloneRange(); r.collapse(true);
+  marker=document.createElement('span'); r.insertNode(marker);
+}
+function unmark(){
+  if(!marker) return;
+  const m=marker; marker=null;
+  const host=m.closest('.content'), r=document.createRange();
+  r.setStartBefore(m); r.collapse(true);
+  m.scrollIntoView({block:'nearest'}); m.remove();
+  if(host){host.focus({preventScroll:true});const s=getSelection();s.removeAllRanges();s.addRange(r)}
+  contents().forEach(c=>c.normalize());
+}
+
+/* ---------- авто-перенос текста по листам ---------- */
+function splitPoint(block,limAbs){
+  const tw=document.createTreeWalker(block,NodeFilter.SHOW_TEXT), nodes=[]; let total=0,n;
+  while(n=tw.nextNode()) if(n.length){nodes.push([n,total]);total+=n.length}
+  if(!total) return null;
+  const lh=lineH(block);
+  const at=k=>{for(let j=nodes.length-1;j>=0;j--) if(k>=nodes[j][1]) return [nodes[j][0],k-nodes[j][1]]};
+  const fits=k=>{
+    const [nd,o]=at(k), r=document.createRange(); r.setStart(block,0); r.setEnd(nd,o);
+    const rs=[...r.getClientRects()].filter(x=>x.height>0); if(!rs.length) return true;
+    let lr=rs[0]; for(const x of rs) if(x.bottom>=lr.bottom) lr=x;
+    return lr.bottom+Math.max(0,(lh-lr.height)/2)<=limAbs-0.5;
+  };
+  if(fits(total)) return null;
+  let lo=0,hi=total; while(hi-lo>1){const m=(lo+hi)>>1; fits(m)?lo=m:hi=m}
+  return lo>0?at(lo):null;
+}
+function toNext(c,el){
+  let n=nextC(c);
+  if(n&&n.firstElementChild&&n.firstElementChild.dataset.pb) n=null;
+  if(!n){const pg=newPage('');c.parentNode.after(pg);n=pg.firstChild}
+  n.insertBefore(el,n.firstChild);
+}
+function pushDown(c){
+  mark();
+  const last=c.lastElementChild, lim=c.getBoundingClientRect().top+LIM;
+  if(BLK.test(last.tagName)&&last.offsetTop<LIM){
+    const p=splitPoint(last,lim);
+    if(p){
+      const rg=document.createRange(); rg.setStart(p[0],p[1]); rg.setEnd(last,last.childNodes.length);
+      const frag=rg.extractContents(), nb=last.cloneNode(false);
+      nb.removeAttribute('data-pb'); nb.removeAttribute('data-hd'); nb.dataset.cont=1; nb.appendChild(frag);
+      last.dataset.hd=1; toNext(c,nb); return true;
+    }
+  }
+  if(c.children.length>1){toNext(c,last);return true}
+  return false;
+}
+function pullUp(c){
+  const n=nextC(c); if(!n) return false;
+  const b=n.firstElementChild;
+  if(!b){n.parentNode.remove();return true}
+  if(b.dataset.pb) return false;
+  const room=LIM-bottomOf(c), t=c.lastElementChild;
+  if(b.dataset.cont&&t&&BLK.test(t.tagName)){
+    if(room<lineH(b)+1) return false;
+    mark();
+    if(t.lastChild&&t.lastChild.nodeName==='BR'&&t.childNodes.length>1) t.lastChild.remove();
+    t.removeAttribute('data-hd');
+    while(b.firstChild) t.appendChild(b.firstChild);
+    b.remove(); return true;
+  }
+  if(room<blockH(b)) return false;
+  mark(); b.removeAttribute('data-cont'); c.appendChild(b); return true;
+}
+function reflow(){
+  for(let c=contents()[0];c;c=nextC(c)){
+    for(let g=0;g<400;g++){
+      if(bottomOf(c)>LIM){let k=0;while(bottomOf(c)>LIM&&pushDown(c)&&k++<400);break}
+      if(!pullUp(c)) break;
+    }
+  }
+  contents().slice(1).forEach(c=>{if(!c.firstElementChild) c.parentNode.remove()});
+  unmark();
+}
+function afterEdit(){
+  contents().forEach((c,i)=>fixBlocks(c,i===0));
+  reflow(); placeBox(); syncUI(); queueSave();
+}
+
+/* ---------- курсор ---------- */
+function caretAt(b,end){
+  while(/^(UL|OL)$/.test(b.tagName)&&b.firstElementChild) b=end?b.lastElementChild:b.firstElementChild;
+  const c=b.closest('.content'); c.focus({preventScroll:true});
+  const r=document.createRange(); let n=0;
+  if(end){n=b.childNodes.length;if(n&&b.lastChild.nodeName==='BR')n--}
+  r.setStart(b,n); r.collapse(true);
+  const s=getSelection(); s.removeAllRanges(); s.addRange(r);
+  b.scrollIntoView({block:'nearest'});
+}
+const caretTo=(c,w)=>caretAt(w==='end'?c.lastElementChild:c.firstElementChild,w==='end');
+function restore(){
+  if(document.activeElement&&document.activeElement.classList.contains('content')) return;
+  const c=lastRange&&contents().find(x=>x.contains(lastRange.startContainer));
+  if(c){c.focus({preventScroll:true});const s=getSelection();s.removeAllRanges();s.addRange(lastRange.cloneRange())}
+  else caretTo(contents()[0],'end');
+}
+function atEdge(c,r,start){
+  const b=start?c.firstElementChild:c.lastElementChild;
+  if(!b||/^(UL|OL)$/.test(b.tagName)||!b.contains(r.startContainer)) return false;
+  const q=document.createRange();
+  if(start){q.setStart(b,0);q.setEnd(r.startContainer,r.startOffset)}
+  else{q.setStart(r.startContainer,r.startOffset);q.setEnd(b,b.childNodes.length)}
+  const f=q.cloneContents(); return f.textContent.replace(/\u200b/g,'')===''&&!f.querySelector('img,hr');
+}
+function lineEdge(c,r,first){
+  const b=first?c.firstElementChild:c.lastElementChild; if(!b||!b.contains(r.startContainer)) return false;
+  let q=r.getClientRects()[0];
+  if(!q||!q.height){const n=r.startContainer;q=(n.nodeType===1?n:n.parentElement).getBoundingClientRect()}
+  const br=b.getBoundingClientRect();
+  return first?q.top-br.top<q.height*.9:br.bottom-q.bottom<q.height*.9;
+}
+function join(i,key){ // слияние первого блока страницы i с последним блоком страницы i-1
+  const cs=contents(),c=cs[i],prev=cs[i-1],b=c.firstElementChild,t=prev.lastElementChild;
+  if(!b||!t) return;
+  t.removeAttribute('data-hd');
+  if(isEmpty(t)){ if(prev.children.length===1) prev.appendChild(b); t.remove(); caretAt(b,false); }
+  else if(isEmpty(b)){ b.remove(); caretAt(t,true); }
+  else if(BLK.test(t.tagName)&&BLK.test(b.tagName)){
+    const cont=b.dataset.cont;
+    if(t.lastChild&&t.lastChild.nodeName==='BR') t.lastChild.remove();
+    const pos=t.childNodes.length; while(b.firstChild) t.appendChild(b.firstChild); b.remove();
+    const r=document.createRange(); r.setStart(t,pos); r.collapse(true);
+    prev.focus({preventScroll:true}); const s=getSelection(); s.removeAllRanges(); s.addRange(r);
+    if(cont) document.execCommand(key==='Delete'?'forwardDelete':'delete');
+  } else caretAt(t,true);
+  afterEdit();
+}
+function pageBreak(){
+  restore();
+  const s=getSelection(); if(!s.rangeCount) return;
+  const c=contents().find(x=>x.contains(s.anchorNode)); if(!c) return;
+  let b=s.anchorNode; while(b&&b.parentNode!==c) b=b.parentNode; if(!b) return;
+  const pg=newPage(''), nc=pg.firstChild;
+  while(b.nextSibling) nc.appendChild(b.nextSibling);
+  if(!nc.firstElementChild) nc.innerHTML=EMPTY;
+  nc.firstElementChild.dataset.pb=1;
+  c.parentNode.after(pg); afterEdit(); caretTo(nc,'start');
+}
+
+/* ---------- отступы абзацев ---------- */
+const TAB=47.24; // 1.25 см
+function blockOf(n){
+  let b=n.nodeType===1?n:n.parentNode;
+  if(b.classList&&b.classList.contains('content')) return b.firstElementChild;
+  while(b&&b.parentNode&&!(b.parentNode.classList&&b.parentNode.classList.contains('content'))) b=b.parentNode;
+  return b;
+}
+function atBlockStart(b,r){
+  if(!b||!b.contains(r.startContainer)) return false;
+  const q=document.createRange(); q.setStart(b,0); q.setEnd(r.startContainer,r.startOffset);
+  const f=q.cloneContents(); return f.textContent.replace(/\u200b/g,'')===''&&!f.querySelector('img,hr');
+}
+function indentBlocks(d){
+  restore(); const s=getSelection(); if(!s.rangeCount) return; const r=s.getRangeAt(0);
+  contents().forEach(c=>[...c.children].forEach(b=>{
+    if(!BLK.test(b.tagName)||!r.intersectsNode(b)) return;
+    const v=Math.max(0,Math.min(300,(parseFloat(b.style.textIndent)||0)+d*TAB));
+    b.style.textIndent=v?v.toFixed(2)+'px':'';
+  }));
+  afterEdit();
+}
+function onTab(e){
+  e.preventDefault();
+  const s=getSelection(); if(!s.rangeCount) return;
+  const r=s.getRangeAt(0), el=r.startContainer.nodeType===1?r.startContainer:r.startContainer.parentElement;
+  if(el&&el.closest('li')){document.execCommand(e.shiftKey?'outdent':'indent');return}
+  if(!s.isCollapsed||atBlockStart(blockOf(r.startContainer),r)) indentBlocks(e.shiftKey?-1:1);
+  else if(!e.shiftKey) document.execCommand('insertText',false,'\u2003\u2003');
+}
+
+/* ---------- события редактора ---------- */
+pagesEl.addEventListener('focusin',()=>{try{document.execCommand('defaultParagraphSeparator',false,'p');document.execCommand('styleWithCSS',false,true)}catch(e){}});
+pagesEl.addEventListener('input',e=>{if(!e.isComposing) afterEdit()});
+pagesEl.addEventListener('compositionend',afterEdit);
+pagesEl.addEventListener('keydown',e=>{
+  const c=e.target.closest&&e.target.closest('.content'); if(!c) return;
+  if(selImg){
+    if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();imgAct('del');return}
+    if(!e.ctrlKey&&!e.metaKey&&(e.key.length===1||e.key==='Enter')) hideImg();
+  }
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();pageBreak();return}
+  if(e.key==='Tab'&&!e.ctrlKey&&!e.altKey&&!e.metaKey){onTab(e);return}
+  if(e.ctrlKey||e.metaKey||e.altKey||e.shiftKey) return;
+  const s=getSelection(); if(!s.rangeCount||!s.isCollapsed) return;
+  const r=s.getRangeAt(0), cs=contents(), i=cs.indexOf(c), k=e.key;
+  if(k==='Backspace'&&i>0&&atEdge(c,r,true)){e.preventDefault();join(i,k)}
+  else if(k==='Delete'&&i<cs.length-1&&atEdge(c,r,false)){e.preventDefault();join(i+1,k)}
+  else if(k==='ArrowLeft'&&i>0&&atEdge(c,r,true)){e.preventDefault();caretTo(cs[i-1],'end')}
+  else if(k==='ArrowRight'&&i<cs.length-1&&atEdge(c,r,false)){e.preventDefault();caretTo(cs[i+1],'start')}
+  else if(k==='ArrowUp'&&i>0&&lineEdge(c,r,true)){e.preventDefault();caretTo(cs[i-1],'end')}
+  else if(k==='ArrowDown'&&i<cs.length-1&&lineEdge(c,r,false)){e.preventDefault();caretTo(cs[i+1],'start')}
+});
+pagesEl.addEventListener('paste',e=>{
+  e.preventDefault();
+  const cd=e.clipboardData, f=[...cd.files].find(x=>x.type.startsWith('image/'));
+  if(f){readFile(f);return}
+  const t=cd.getData('text/plain'); if(t) document.execCommand('insertText',false,t.replace(/\r/g,''));
+});
+pagesEl.addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('Files')) e.preventDefault()});
+pagesEl.addEventListener('drop',e=>{
+  const fs=[...e.dataTransfer.files].filter(x=>x.type.startsWith('image/'));
+  if(fs.length){e.preventDefault();fs.forEach(readFile)}
+});
+pagesEl.addEventListener('click',e=>{if(e.target.tagName==='IMG') selectImg(e.target); else hideImg()});
+document.addEventListener('selectionchange',()=>{
+  const s=getSelection();
+  if(s.rangeCount&&contents().some(c=>c.contains(s.anchorNode))){lastRange=s.getRangeAt(0).cloneRange();syncUI()}
+});
+
+/* ---------- панель инструментов ---------- */
+document.addEventListener('mousedown',e=>{if(e.target.closest('#toolbar button,#toolbar label.b,#imgbox button')) e.preventDefault()});
+const AL={justifyLeft:'left',justifyCenter:'center',justifyRight:'right'};
+function exec(cmd,val){restore();document.execCommand(cmd,false,val);syncUI()}
+function setSize(pt){
+  pt=Math.max(6,Math.min(96,pt||12)); restore();
+  document.execCommand('fontSize',false,'7');
+  pagesEl.querySelectorAll('[style*="xxx-large"]').forEach(e=>e.style.fontSize=(pt*96/72)+'px');
+  $('#fs').value=pt; afterEdit();
+}
+function setLH(v){
+  restore(); const s=getSelection(); if(!s.rangeCount) return; const r=s.getRangeAt(0);
+  contents().forEach(c=>[...c.children].forEach(b=>{if(r.intersectsNode(b)) b.style.lineHeight=v}));
+  afterEdit();
+}
+function run(cmd){
+  if(selImg&&AL[cmd]){imgAct(AL[cmd]);return}
+  switch(cmd){
+    case'size-':return setSize((+$('#fs').value||12)-1);
+    case'size+':return setSize((+$('#fs').value||12)+1);
+    case'clearhl':return exec('hiliteColor','transparent');
+    case'indent+':return indentBlocks(1);
+    case'indent-':return indentBlocks(-1);
+    case'pagebreak':return pageBreak();
+    case'img-file':return $('#fi').click();
+    case'img-url':return urlImg();
+    case'export':return openExport();
+    case'new':return newDoc();
+    case'pagesetup':return openModal();
+    default:exec(cmd);
+  }
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-cmd]'); if(b){run(b.dataset.cmd);return}
+  const i=e.target.closest('[data-img]'); if(i) imgAct(i.dataset.img);
+});
+$('#ff').addEventListener('change',e=>exec('fontName',e.target.value));
+$('#fs').addEventListener('change',e=>setSize(+e.target.value));
+$('#lh').addEventListener('change',e=>setLH(e.target.value));
+$('#tc').addEventListener('input',e=>{exec('foreColor',e.target.value);$('#tcI').style.borderBottomColor=e.target.value});
+$('#hc').addEventListener('input',e=>{exec('hiliteColor',e.target.value);$('#hcI').style.background=e.target.value});
+$('#title').addEventListener('input',queueSave);
+const HRS={thin:'1px solid',normal:'2px solid',thick:'4px solid',double:'5px double',dashed:'2px dashed',dotted:'3px dotted'};
+$('#hrs').addEventListener('change',e=>{
+  const v=HRS[e.target.value]; e.target.value=''; if(!v) return;
+  restore(); document.execCommand('insertHTML',false,`<hr style="border:0;border-top:${v} #000;margin:10px 0">`);
+  afterEdit();
+});
+
+function syncUI(){
+  const s=getSelection(); if(!s.rangeCount||!contents().some(c=>c.contains(s.anchorNode))) return;
+  ['bold','italic','underline','strikeThrough','insertUnorderedList','insertOrderedList','justifyLeft','justifyCenter','justifyRight','justifyFull']
+    .forEach(k=>{const b=document.querySelector(`[data-cmd="${k}"]`);if(b)b.classList.toggle('on',!!document.queryCommandState(k))});
+  const el=s.anchorNode.nodeType===1?s.anchorNode:s.anchorNode.parentElement, cs=getComputedStyle(el);
+  const ff=cs.fontFamily.split(',')[0].replace(/["']/g,'').trim();
+  if([...$('#ff').options].some(o=>o.value===ff)) $('#ff').value=ff;
+  if(document.activeElement!==$('#fs')) $('#fs').value=Math.round(parseFloat(cs.fontSize)*72/96);
+  const blk=el.closest('.content>*'), lh=parseFloat((blk&&blk.style.lineHeight)||'1.15');
+  const o=[...$('#lh').options].find(x=>parseFloat(x.value)===lh); if(o) $('#lh').value=o.value;
+  $('#pn').textContent=`Стр. ${contents().findIndex(c=>c.contains(s.anchorNode))+1} / ${contents().length}`;
+}
+
+/* ---------- изображения ---------- */
+function insertImg(src){
+  const im=new Image();
+  im.onload=()=>{
+    const w=Math.min(im.naturalWidth||300,300); restore();
+    document.execCommand('insertHTML',false,`<img src="${src.replace(/"/g,'%22')}" style="width:${w}px;height:auto">`);
+    afterEdit();
+  };
+  im.onerror=()=>alert('Не удалось загрузить изображение.');
+  im.src=src;
+}
+function readFile(f){const fr=new FileReader();fr.onload=()=>insertImg(fr.result);fr.readAsDataURL(f)}
+$('#fi').addEventListener('change',e=>{[...e.target.files].forEach(readFile);e.target.value=''});
+async function urlImg(){
+  const u=(prompt('Введите URL изображения:')||'').trim(); if(!u) return;
+  try{
+    const b=await (await fetch(u)).blob(), fr=new FileReader();
+    fr.onload=()=>insertImg(fr.result); fr.readAsDataURL(b);
+  }catch(e){
+    alert('Сервер не разрешает загрузку изображения (CORS). Оно будет вставлено по ссылке, но может не попасть в JPG. Лучше загрузите файл с ПК.');
+    insertImg(u);
+  }
+}
+function selectImg(img){selImg=img;placeBox()}
+function hideImg(){selImg=null;box.hidden=true}
+function placeBox(){
+  if(!selImg||!selImg.isConnected){hideImg();return}
+  const r=selImg.getBoundingClientRect(), w=ws.getBoundingClientRect();
+  box.hidden=false;
+  Object.assign(box.style,{left:r.left-w.left+ws.scrollLeft+'px',top:r.top-w.top+ws.scrollTop+'px',width:r.width+'px',height:r.height+'px'});
+  $('#imgbar').style.top=(r.top-w.top<50)?'calc(100% + 10px)':'-42px';
+}
+function imgAct(a){
+  if(!selImg) return;
+  if(a==='del'){const p=selImg.parentNode;selImg.remove();if(!p.firstChild)p.innerHTML='<br>';hideImg();afterEdit();return}
+  if(/^\d+$/.test(a)){selImg.style.width=Math.round((PW-M.l-M.r)*a/100)+'px';selImg.style.height='auto'}
+  else{let b=selImg;while(b.parentNode&&!b.parentNode.classList.contains('content'))b=b.parentNode;b.style.textAlign=a}
+  afterEdit();
+}
+$('#imgh').addEventListener('mousedown',e=>{
+  e.preventDefault(); if(!selImg) return;
+  const sx=e.clientX, w0=selImg.getBoundingClientRect().width;
+  const mv=ev=>{selImg.style.width=Math.max(20,Math.min(PW-M.l-M.r,w0+ev.clientX-sx))+'px';selImg.style.height='auto';placeBox()};
+  const up=()=>{removeEventListener('mousemove',mv);removeEventListener('mouseup',up);afterEdit()};
+  addEventListener('mousemove',mv); addEventListener('mouseup',up);
+});
+addEventListener('resize',placeBox);
+
+/* ---------- документы, поля и сохранение ---------- */
+const IDX='a4d:index', DOC=id=>'a4d:doc:'+id, MI=['mt','mb','ml','mr'];
+let docs=[], cur=null;
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=t=>new Date(t).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const mm2px=v=>v*96/25.4, px2mm=v=>Math.round(v*25.4/96*10)/10;
+const loadIndex=()=>{try{docs=JSON.parse(localStorage.getItem(IDX))||[]}catch(e){docs=[]}};
+const writeIndex=()=>{try{localStorage.setItem(IDX,JSON.stringify(docs))}catch(e){}};
+
+function setMargins(m){
+  ['t','r','b','l'].forEach(k=>{const v=+m[k];M[k]=(isFinite(v)&&v>=0)?Math.min(v,mm2px(80)):DEF});
+  const st=document.documentElement.style;
+  ['t','r','b','l'].forEach(k=>st.setProperty('--m'+k,M[k]+'px'));
+  LIM=PH-M.b;
+}
+function save(){
+  if(!cur) return;
+  const d={t:$('#title').value,m:{...M},p:contents().map(c=>c.innerHTML)};
+  try{
+    localStorage.setItem(DOC(cur),JSON.stringify(d));
+    let meta=docs.find(x=>x.id===cur); if(!meta){meta={id:cur};docs.push(meta)}
+    Object.assign(meta,{t:d.t,u:Date.now(),n:d.p.length,s:contents()[0].textContent.trim().slice(0,80)});
+    writeIndex(); $('#st').textContent='Сохранено'; renderSide();
+  }catch(e){$('#st').textContent='Нет места в памяти браузера'}
+}
+function queueSave(){clearTimeout(tmr);$('#st').textContent='Сохранение…';tmr=setTimeout(save,600)}
+function renderSide(){
+  const q=$('#q').value.trim().toLowerCase();
+  const list=[...docs].sort((a,b)=>b.u-a.u).filter(d=>!q||((d.t||'')+' '+(d.s||'')).toLowerCase().includes(q));
+  $('#dl').innerHTML=list.map(d=>`<div class="di${d.id===cur?' on':''}" data-id="${d.id}"><div class="dt">${esc(d.t||'Документ без названия')}</div><div class="dm"><span>${fmt(d.u)}</span><span>${d.n} стр.</span></div><div class="ds">${esc(d.s||'Пустой документ')}</div><button class="dx" data-del="${d.id}" title="Удалить">✕</button></div>`).join('')||'<p class="empty">Ничего не найдено</p>';
+}
+function openDoc(id){
+  if(id===cur) return;
+  if(cur){clearTimeout(tmr);save()}
+  let d=null; try{d=JSON.parse(localStorage.getItem(DOC(id)))}catch(e){}
+  if(!d) d={t:'',m:{},p:[EMPTY]};
+  cur=id; localStorage.setItem('a4d:last',id);
+  setMargins(d.m||{});
+  pagesEl.innerHTML=''; (d.p&&d.p.length?d.p:[EMPTY]).forEach(h=>pagesEl.appendChild(newPage(h)));
+  $('#title').value=d.t||''; hideImg(); lastRange=null; ws.scrollTop=0;
+  contents().forEach((c,i)=>fixBlocks(c,i===0)); reflow(); syncUI(); renderSide();
+}
+function newDoc(){
+  const id=uid(); docs.push({id,t:'',u:Date.now(),n:1,s:''});
+  try{localStorage.setItem(DOC(id),JSON.stringify({t:'',m:{t:DEF,r:DEF,b:DEF,l:DEF},p:[EMPTY]}))}catch(e){}
+  writeIndex(); openDoc(id); caretTo(contents()[0],'end');
+}
+function delDoc(id){
+  const m=docs.find(x=>x.id===id);
+  if(!confirm(`Удалить «${(m&&m.t)||'Документ без названия'}»? Это действие нельзя отменить.`)) return;
+  localStorage.removeItem(DOC(id)); docs=docs.filter(x=>x.id!==id); writeIndex();
+  if(id===cur){cur=null;clearTimeout(tmr);docs.length?openDoc([...docs].sort((a,b)=>b.u-a.u)[0].id):newDoc()}
+  else renderSide();
+}
+$('#dl').addEventListener('click',e=>{
+  const x=e.target.closest('[data-del]'); if(x){e.stopPropagation();delDoc(x.dataset.del);return}
+  const d=e.target.closest('[data-id]'); if(d){openDoc(d.dataset.id);if(innerWidth<900)document.body.classList.add('noside')}
+});
+$('#q').addEventListener('input',renderSide);
+$('#menu').addEventListener('click',()=>{document.body.classList.toggle('noside');placeBox()});
+
+/* параметры страницы */
+function prev(){
+  const v=MI.map(i=>Math.max(0,Math.min(80,+$('#'+i).value||0))), s=$('#mp i').style;
+  s.top=v[0]/297*100+'%'; s.bottom=v[1]/297*100+'%'; s.left=v[2]/210*100+'%'; s.right=v[3]/210*100+'%';
+}
+function openModal(){[M.t,M.b,M.l,M.r].forEach((v,k)=>$('#'+MI[k]).value=px2mm(v));prev();$('#modal').hidden=false}
+const closeModal=()=>{$('#modal').hidden=true;$('#xmodal').hidden=true};
+$('#modal').addEventListener('click',e=>{
+  if(e.target.id==='modal') closeModal();
+  const p=e.target.closest('[data-pre]'); if(p){p.dataset.pre.split(',').forEach((v,k)=>$('#'+MI[k]).value=v);prev()}
+});
+MI.forEach(i=>$('#'+i).addEventListener('input',prev));
+$('#mcancel').addEventListener('click',closeModal);
+$('#mok').addEventListener('click',()=>{
+  const v=MI.map(i=>mm2px(Math.max(0,Math.min(80,+$('#'+i).value||0))));
+  setMargins({t:v[0],b:v[1],l:v[2],r:v[3]}); closeModal(); hideImg(); afterEdit(); save();
+});
+addEventListener('keydown',e=>{if(e.key==='Escape') closeModal()});
+
+/* ---------- экспорт в JPG ---------- */
+function download(blob,name){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+function openExport(){
+  $('#xl').innerHTML=contents().map((c,i)=>`<label class="xr"><input type="checkbox" checked data-i="${i}"><b>Страница ${i+1}</b><span>${esc(c.textContent.trim().slice(0,60)||'Пустая страница')}</span></label>`).join('');
+  updX(); $('#xmodal').hidden=false;
+}
+function updX(){
+  const all=$('#xl').querySelectorAll('input'), n=$('#xl').querySelectorAll('input:checked').length;
+  $('#xsub').textContent=`Выбрано: ${n} из ${all.length}`;
+  $('#xgo').disabled=!n; $('#xgo').textContent=n?`Скачать (${n})`:'Скачать';
+}
+$('#xl').addEventListener('change',updX);
+$('#xall').addEventListener('click',()=>{$('#xl').querySelectorAll('input').forEach(i=>i.checked=true);updX()});
+$('#xnone').addEventListener('click',()=>{$('#xl').querySelectorAll('input').forEach(i=>i.checked=false);updX()});
+$('#xcancel').addEventListener('click',closeModal);
+$('#xmodal').addEventListener('click',e=>{if(e.target.id==='xmodal') closeModal()});
+$('#xgo').addEventListener('click',()=>{
+  const idx=[...$('#xl').querySelectorAll('input:checked')].map(i=>+i.dataset.i);
+  closeModal(); if(idx.length) exportJPG(idx);
+});
+async function exportJPG(idx){
+  if(typeof html2canvas==='undefined'){alert('Библиотека html2canvas не загрузилась. Проверьте подключение к интернету.');return}
+  const ov=$('#ov'), btn=$('#exp'), cs=contents();
+  const name=($('#title').value.trim()||'document').replace(/[\\/:*?"<>|]+/g,'_');
+  hideImg(); getSelection().removeAllRanges(); if(document.activeElement) document.activeElement.blur();
+  btn.disabled=true; ov.hidden=false;
+  try{
+    await document.fonts.ready;
+    let k=0;
+    for(const i of idx){
+      ov.textContent=`Рендеринг страницы ${i+1} (${++k} из ${idx.length})…`;
+      const cv=await html2canvas(cs[i],{scale:3,useCORS:true,backgroundColor:'#ffffff',logging:false,width:PW,height:PH,scrollX:0,scrollY:0});
+      const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.95));
+      download(blob,`${name}_page_${i+1}.jpg`);
+      await sleep(400);
+    }
+    ov.textContent=`Готово: скачано страниц — ${idx.length}`; await sleep(1800);
+  }catch(err){console.error(err);alert('Ошибка экспорта: '+err.message)}
+  ov.hidden=true; btn.disabled=false;
+}
+
+/* ---------- тема ---------- */
+const ICO=p=>`<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const SUN=ICO('<circle cx="9" cy="9" r="3.2"/><path d="M9 1.8v1.6M9 14.6v1.6M1.8 9h1.6M14.6 9h1.6M3.9 3.9l1.1 1.1M13 13l1.1 1.1M14.1 3.9L13 5M5 13l-1.1 1.1"/>');
+const MOON=ICO('<path d="M14.5 10.6A6 6 0 0 1 7.4 3.5a6 6 0 1 0 7.1 7.1z"/>');
+function setTheme(t,store=true){
+  document.documentElement.dataset.theme=t;
+  if(store){try{localStorage.setItem('a4d:theme',t)}catch(e){}}
+  $('#theme').innerHTML=t==='dark'?SUN:MOON;
+  $('#theme').title=t==='dark'?'Включить светлую тему':'Включить тёмную тему';
+}
+$('#theme').addEventListener('click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
+setTheme(document.documentElement.dataset.theme||'light',false);
+
+/* ---------- старт ---------- */
+(function init(){
+  try{document.execCommand('enableObjectResizing',false,false)}catch(e){}
+  if(innerWidth<900) document.body.classList.add('noside');
+  loadIndex();
+  if(!docs.length){ // первый запуск или перенос документа из старой версии
+    let old=null; try{old=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+    const id=uid(); docs.push({id,t:(old&&old.t)||'',u:Date.now(),n:1,s:''});
+    try{localStorage.setItem(DOC(id),JSON.stringify(old&&old.p?{t:old.t||'',m:{},p:old.p}:{t:'',m:{},p:[EMPTY]}))}catch(e){}
+    writeIndex();
+  }
+  const last=localStorage.getItem('a4d:last');
+  openDoc(docs.some(d=>d.id===last)?last:[...docs].sort((a,b)=>b.u-a.u)[0].id);
+})();
+})();
+</script>
+</body>
+</html>
